@@ -1,4 +1,4 @@
-import { Span, StartSpanOptions } from "@sentry/types";
+import { Span, StartSpanOptions } from "@sentry/core";
 import logLevel, { levels } from "loglevel";
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from "vitest";
 
