@@ -1,6 +1,6 @@
 import { Span, StartSpanOptions } from "@sentry/core";
 import logLevel, { levels } from "loglevel";
-import { afterEach, beforeEach, describe, expect, it, Mock, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from "vite-plus/test";
 
 import * as httpHelpers from "../src/index";
 
