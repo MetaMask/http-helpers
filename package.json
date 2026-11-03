@@ -13,6 +13,7 @@
     "prepack": "npm run build",
     "lint": "vp lint",
     "check": "vp check",
+    "typecheck": "tsc --noEmit",
     "test": "npm run test:node && npm run test:browsers",
     "test:node": "vp test run --config test/configs/node.config.mts --coverage",
     "test:browsers": "vp test run --config test/configs/browsers.config.mts --coverage",
