@@ -35,6 +35,7 @@
     "loglevel": "^1.9.2"
   },
   "devDependencies": {
+    "@lavamoat/harden": "0.8.1",
     "@sentry/core": "^10.36.0",
     "@toruslabs/config": "^5.0.0",
     "@toruslabs/oxlint-config-typescript": "^1.0.0",
@@ -75,12 +76,21 @@
     ]
   },
   "overrides": {
-    "esbuild": "^0.25.0",
     "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
     "vitest": "5.0.5"
   },
   "engines": {
     "node": ">=24.22.0",
     "npm": ">=12"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "npm",
+      "version": ">=11.17.0",
+      "onFail": "error"
+    }
+  },
+  "allowScripts": {
+    "fsevents@2.3.3": false
   }
 }
