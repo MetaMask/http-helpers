@@ -51,4 +51,4 @@ const { get, post } = require("@toruslabs/http-helpers").default;
 ## Requirements
 
 - This package requires a peer dependency of `@babel/runtime`
-- Node 22+
+- Node 24.22 or newer
