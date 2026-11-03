@@ -51,7 +51,6 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "playwright": "^1.57.0",
-    "rimraf": "^6.1.2",
     "typescript": "7.0.2",
     "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
     "vite-plus": "1.4.0",
