@@ -17,7 +17,7 @@
     "test": "npm run test:node && npm run test:browsers",
     "test:node": "vp test run --config test/configs/node.config.mts --coverage",
     "test:browsers": "vp test run --config test/configs/browsers.config.mts --coverage",
-    "prepare": "husky",
+    "prepare": "husky && node scripts/patch-minimatch-default.mjs",
     "changeset": "changeset",
     "version-packages": "changeset version && npm install --package-lock-only --ignore-scripts",
     "release-packages": "changeset publish"
@@ -81,7 +81,8 @@
   },
   "overrides": {
     "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
-    "vitest": "5.0.5"
+    "vitest": "5.0.5",
+    "minimatch": "11.0.3"
   },
   "engines": {
     "node": ">=24.22.0",
