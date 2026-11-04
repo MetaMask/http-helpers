@@ -1,5 +1,5 @@
+import deepmerge from "@fastify/deepmerge";
 import type { startSpan } from "@sentry/core";
-import merge from "deepmerge";
 import logLevel, { type LogLevelDesc } from "loglevel";
 
 const log = logLevel.getLogger("http-helpers");
@@ -89,10 +89,46 @@ async function fetchAndTrace(url: string, init: RequestInit): Promise<Response> 
 
   return fetch(url, init);
 }
-function withoutDefaultJsonContentType<T extends object>(headers: T): T {
-  const record = headers as Record<string, unknown>;
-  if (record["Content-Type"] !== "application/json; charset=utf-8") return headers;
-  return Object.fromEntries(Object.entries(record).filter(([key]) => key !== "Content-Type")) as T;
+const DEFAULT_JSON_CONTENT_TYPE = "application/json; charset=utf-8";
+
+function withoutDefaultJsonContentType(headers: HeadersInit | undefined): HeadersInit | undefined {
+  if (headers instanceof Headers) {
+    if (headers.get("content-type") !== DEFAULT_JSON_CONTENT_TYPE) return headers;
+    const next = new Headers(headers);
+    next.delete("content-type");
+    return next;
+  }
+  if (!isPlainObject(headers)) return headers;
+  if (headers["Content-Type"] !== DEFAULT_JSON_CONTENT_TYPE) return headers;
+  return Object.fromEntries(Object.entries(headers).filter(([key]) => key !== "Content-Type"));
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (value === null || typeof value !== "object") return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
+const merge = deepmerge({ isMergeableObject: isPlainObject });
+
+// Headers and [name, value][] store entries off enumerable keys, so deepmerge would drop them.
+function combineHeaders(defaults: HeadersInit, caller: HeadersInit): HeadersInit {
+  if (isPlainObject(caller) && isPlainObject(defaults)) {
+    return merge(defaults, caller) as Record<string, string>;
+  }
+  const combined = new Headers(defaults);
+  new Headers(caller).forEach((value, key) => {
+    combined.set(key, value);
+  });
+  return combined;
+}
+
+function mergeRequestInit(defaults: RequestInit, options: RequestInit): RequestInit {
+  const { headers: callerHeaders, ...callerWithoutHeaders } = options;
+  const merged = merge(defaults, callerWithoutHeaders) as RequestInit;
+  if (!Object.hasOwn(options, "headers")) return merged;
+  merged.headers = callerHeaders === undefined ? undefined : combineHeaders(defaults.headers ?? {}, callerHeaders);
+  return merged;
 }
 
 function getApiKeyHeaders(): Record<string, string> {
@@ -147,7 +183,7 @@ export const get = async <T>(url: string, options_: RequestInit = {}, customOpti
     defaultOptions.headers = { ...defaultOptions.headers, ...getApiKeyHeaders() };
   }
   options_.method = "GET";
-  const options = merge<RequestInit>(defaultOptions, options_);
+  const options = mergeRequestInit(defaultOptions, options_);
   const response = await fetchAndTrace(url, options);
   if (response.ok) {
     const responseContentType = response.headers.get("content-type");
@@ -164,14 +200,14 @@ export const post = <T>(url: string, data: Data = {}, options_: RequestInit = {}
   const defaultOptions = {
     mode: "cors" as RequestMode,
     headers: {
-      "Content-Type": "application/json; charset=utf-8",
+      "Content-Type": DEFAULT_JSON_CONTENT_TYPE,
     },
   };
   if (customOptions.useAPIKey) {
     defaultOptions.headers = { ...defaultOptions.headers, ...getApiKeyHeaders() };
   }
   options_.method = "POST";
-  const options = merge(defaultOptions, options_);
+  const options = mergeRequestInit(defaultOptions, options_);
 
   // deep merge changes the structure of form data and url encoded data ,
   // so we should not deepmerge body data
@@ -209,7 +245,7 @@ export const patch = async <T>(url: string, data: Data = {}, options_: RequestIn
   const defaultOptions = {
     mode: "cors" as RequestMode,
     headers: {
-      "Content-Type": "application/json; charset=utf-8",
+      "Content-Type": DEFAULT_JSON_CONTENT_TYPE,
     },
   };
   // for multipart request browser/client will add multipart content type
@@ -219,7 +255,7 @@ export const patch = async <T>(url: string, data: Data = {}, options_: RequestIn
     defaultOptions.headers = { ...defaultOptions.headers, ...getApiKeyHeaders() };
   }
   options_.method = "PATCH";
-  const options = merge(defaultOptions, options_);
+  const options = mergeRequestInit(defaultOptions, options_);
   // deep merge changes the structure of form data and url encoded data ,
   // so we should not deepmerge body data
   if (customOptions.isUrlEncodedData) {
@@ -248,7 +284,7 @@ export const put = async <T>(url: string, data: Data = {}, options_: RequestInit
   const defaultOptions = {
     mode: "cors" as RequestMode,
     headers: {
-      "Content-Type": "application/json; charset=utf-8",
+      "Content-Type": DEFAULT_JSON_CONTENT_TYPE,
     },
   };
   // for multipart request browser/client will add multipart content type
@@ -258,7 +294,7 @@ export const put = async <T>(url: string, data: Data = {}, options_: RequestInit
     defaultOptions.headers = { ...defaultOptions.headers, ...getApiKeyHeaders() };
   }
   options_.method = "PUT";
-  const options = merge(defaultOptions, options_);
+  const options = mergeRequestInit(defaultOptions, options_);
   // deep merge changes the structure of form data and url encoded data ,
   // so we should not deepmerge body data
   if (customOptions.isUrlEncodedData) {
@@ -287,7 +323,7 @@ export const remove = async <T>(url: string, data: Data = {}, options_: RequestI
   const defaultOptions = {
     mode: "cors" as RequestMode,
     headers: {
-      "Content-Type": "application/json; charset=utf-8",
+      "Content-Type": DEFAULT_JSON_CONTENT_TYPE,
     },
   };
   // for multipart request browser/client will add multipart content type
@@ -297,7 +333,7 @@ export const remove = async <T>(url: string, data: Data = {}, options_: RequestI
     defaultOptions.headers = { ...defaultOptions.headers, ...getApiKeyHeaders() };
   }
   options_.method = "DELETE";
-  const options = merge(defaultOptions, options_);
+  const options = mergeRequestInit(defaultOptions, options_);
   if (customOptions.isUrlEncodedData) {
     // for multipart request browser/client will add multipart content type
     // along with multipart boundary , so for multipart request send
