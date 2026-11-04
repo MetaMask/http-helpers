@@ -18,7 +18,7 @@ This module is distributed in two formats:
 - `lib.esm` at `dist/lib.esm/index.js`
 - `lib.cjs` at `dist/lib.cjs/index.js`
 
-Both builds import `deepmerge` and `loglevel`. They are not standalone browser scripts, so a `<script>` tag on the jsDelivr or unpkg URL will not run the package. Use a bundler, or Node `import` / `require`.
+Both builds import `loglevel`. They are not standalone browser scripts, so a `<script>` tag on the jsDelivr or unpkg URL will not run the package. Use a bundler, or Node `import` / `require`.
 
 ## Usage
 
