@@ -75,7 +75,7 @@
       "vp fmt",
       "vp lint --fix"
     ],
-    "*.{json,md}": [
+    "!(package-lock).{json,md}": [
       "vp fmt"
     ]
   },
