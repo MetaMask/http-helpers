@@ -8,12 +8,10 @@ const library = libraryPreset({ entry: "src/index.ts", format: ["esm", "cjs"] })
 export default defineConfig({
   pack: {
     ...library.pack,
+    dts: true,
     format: {
       esm: { outDir: "dist/lib.esm" },
-      cjs: {
-        outDir: "dist/lib.cjs",
-        copy: [{ from: "dist/lib.cjs/index.d.ts", to: "dist/lib.cjs/types" }],
-      },
+      cjs: { outDir: "dist/lib.cjs" },
     },
     outExtensions: () => ({ js: ".js", dts: ".d.ts" }),
   },
