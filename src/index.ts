@@ -1,9 +1,9 @@
 import type { startSpan } from "@sentry/core";
 import merge from "deepmerge";
-import logLevel, { levels, LogLevelDesc } from "loglevel";
+import logLevel, { type LogLevelDesc } from "loglevel";
 
 const log = logLevel.getLogger("http-helpers");
-log.setLevel(levels.INFO);
+log.setLevel(logLevel.levels.INFO);
 
 export interface CustomOptions {
   [key: string]: unknown;
@@ -13,7 +13,6 @@ export interface CustomOptions {
   logTracingHeader?: boolean;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface Data {}
 
 export interface Sentry {
@@ -90,6 +89,12 @@ async function fetchAndTrace(url: string, init: RequestInit): Promise<Response> 
 
   return fetch(url, init);
 }
+function withoutDefaultJsonContentType<T extends object>(headers: T): T {
+  const record = headers as Record<string, unknown>;
+  if (record["Content-Type"] !== "application/json; charset=utf-8") return headers;
+  return Object.fromEntries(Object.entries(record).filter(([key]) => key !== "Content-Type")) as T;
+}
+
 function getApiKeyHeaders(): Record<string, string> {
   const headers: Record<string, string> = {};
   if (apiKey) headers[gatewayAuthHeader] = apiKey;
@@ -176,7 +181,7 @@ export const post = <T>(url: string, data: Data = {}, options_: RequestInit = {}
     // content-type: undefined or send with multipart boundary if already known
     options.body = data as string;
     // If url encoded data, this must not be the content type
-    if (options.headers["Content-Type"] === "application/json; charset=utf-8") delete options.headers["Content-Type"];
+    options.headers = withoutDefaultJsonContentType(options.headers);
   } else {
     options.body = JSON.stringify(data);
   }
@@ -223,7 +228,7 @@ export const patch = async <T>(url: string, data: Data = {}, options_: RequestIn
     // content-type: undefined or send with multipart boundary if already known
     options.body = data as string;
     // If url encoded data, this must not be the content type
-    if (options.headers["Content-Type"] === "application/json; charset=utf-8") delete options.headers["Content-Type"];
+    options.headers = withoutDefaultJsonContentType(options.headers);
   } else {
     options.body = JSON.stringify(data);
   }
@@ -262,7 +267,7 @@ export const put = async <T>(url: string, data: Data = {}, options_: RequestInit
     // content-type: undefined or send with multipart boundary if already known
     options.body = data as string;
     // If url encoded data, this must not be the content type
-    if (options.headers["Content-Type"] === "application/json; charset=utf-8") delete options.headers["Content-Type"];
+    options.headers = withoutDefaultJsonContentType(options.headers);
   } else {
     options.body = JSON.stringify(data);
   }
@@ -299,7 +304,7 @@ export const remove = async <T>(url: string, data: Data = {}, options_: RequestI
     // content-type: undefined or send with multipart boundary if already known
     options.body = data as string;
     // If url encoded data, this must not be the content type
-    if (options.headers["Content-Type"] === "application/json; charset=utf-8") delete options.headers["Content-Type"];
+    options.headers = withoutDefaultJsonContentType(options.headers);
   } else {
     options.body = JSON.stringify(data);
   }

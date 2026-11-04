@@ -12,29 +12,13 @@
 ## Installation
 
 ### Bundling
-This module is distributed in 3 formats
-- `lib.esm` build `dist/lib.esm/index.js` in es6 format
-- `lib.cjs` build `dist/lib.cjs/index.js` in es5 format
 
-By default, the appropriate format is used for your specified usecase
-You can use a different format (if you know what you're doing eg. node) by referencing the correct file
+This module is distributed in two formats:
 
+- `lib.esm` at `dist/lib.esm/index.js`
+- `lib.cjs` at `dist/lib.cjs/index.js`
 
-### Directly in Browser
-
-CDN's serve the non-core-js polyfilled version by default. You can use a different
-
-jsdeliver
-
-```js
-<script src="https://cdn.jsdelivr.net/npm/@toruslabs/http-helpers"></script>
-```
-
-unpkg
-
-```js
-<script src="https://unpkg.com/@toruslabs/http-helpers"></script>
-```
+Both builds import `deepmerge` and `loglevel`. They are not standalone browser scripts, so a `<script>` tag on the jsDelivr or unpkg URL will not run the package. Use a bundler, or Node `import` / `require`.
 
 ## Usage
 
@@ -45,10 +29,9 @@ import { get, post } from "@toruslabs/http-helpers";
 ```
 
 ```js
-const { get, post } = require("@toruslabs/http-helpers").default;
+const { get, post } = require("@toruslabs/http-helpers");
 ```
 
 ## Requirements
 
-- This package requires a peer dependency of `@babel/runtime`
-- Node 22+
+- Node 24.22 or newer
