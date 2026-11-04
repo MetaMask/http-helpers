@@ -239,6 +239,58 @@ describe("HTTP Helpers", () => {
         })
       );
     });
+
+    it("should remove the default JSON content type from a Headers object", async () => {
+      httpHelpers.setAPIKey("test-api-key");
+      const callerHeaders = new Headers({
+        "Content-Type": "application/json; charset=utf-8",
+        "X-Custom": "yes",
+      });
+      (fetchMocker as Mock).mockResolvedValue(mockResponse(200, {}));
+
+      await httpHelpers.post("https://api.example.com/data", "key1=value1", { headers: callerHeaders }, { isUrlEncodedData: true, useAPIKey: true });
+
+      const call = (fetchMocker as Mock).mock.calls[0];
+      if (!call) throw new Error("fetch was not called");
+      const sent = (call[1] as RequestInit).headers;
+      expect(sent).toBeInstanceOf(Headers);
+      if (!(sent instanceof Headers)) throw new Error("expected Headers");
+      expect(sent.get("content-type")).toBeNull();
+      expect(sent.get("x-custom")).toBe("yes");
+      expect(sent.get("x-api-key")).toBe("test-api-key");
+      expect(callerHeaders.get("content-type")).toBe("application/json; charset=utf-8");
+      expect(callerHeaders.get("x-custom")).toBe("yes");
+    });
+
+    it("should remove the injected JSON content type when caller headers are a Headers object", async () => {
+      const callerHeaders = new Headers({ "X-Custom": "yes" });
+      (fetchMocker as Mock).mockResolvedValue(mockResponse(200, {}));
+
+      await httpHelpers.post("https://api.example.com/data", "key1=value1", { headers: callerHeaders }, { isUrlEncodedData: true });
+
+      const call = (fetchMocker as Mock).mock.calls[0];
+      if (!call) throw new Error("fetch was not called");
+      const sent = (call[1] as RequestInit).headers;
+      expect(sent).toBeInstanceOf(Headers);
+      if (!(sent instanceof Headers)) throw new Error("expected Headers");
+      expect(sent.get("content-type")).toBeNull();
+      expect(sent.get("x-custom")).toBe("yes");
+      expect(callerHeaders.get("x-custom")).toBe("yes");
+    });
+
+    it("should keep a non-default content type on a Headers object", async () => {
+      const callerHeaders = new Headers({ "Content-Type": "application/x-www-form-urlencoded" });
+      (fetchMocker as Mock).mockResolvedValue(mockResponse(200, {}));
+
+      await httpHelpers.post("https://api.example.com/data", "key1=value1", { headers: callerHeaders }, { isUrlEncodedData: true });
+
+      const call = (fetchMocker as Mock).mock.calls[0];
+      if (!call) throw new Error("fetch was not called");
+      const sent = (call[1] as RequestInit).headers;
+      expect(sent).toBeInstanceOf(Headers);
+      if (!(sent instanceof Headers)) throw new Error("expected Headers");
+      expect(sent.get("content-type")).toBe("application/x-www-form-urlencoded");
+    });
   });
 
   describe("generateJsonRPCObject", () => {
