@@ -26,7 +26,6 @@
     "dist"
   ],
   "peerDependencies": {
-    "@babel/runtime": "^7.x",
     "@sentry/core": "^10.x"
   },
   "peerDependenciesMeta": {
