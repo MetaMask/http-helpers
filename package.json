@@ -44,7 +44,7 @@
     "@toruslabs/config": "^5.0.0",
     "@toruslabs/oxlint-config-typescript": "^1.0.0",
     "@toruslabs/torus-scripts": "^9.0.1",
-    "@types/node": "^24.13.6",
+    "@types/node": "^26.6.6",
     "@vitest/browser-playwright": "5.0.5",
     "@vitest/coverage-istanbul": "5.0.5",
     "husky": "^9.1.7",
