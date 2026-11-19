@@ -1,5 +1,4 @@
 import deepmerge from "@fastify/deepmerge";
-import type { startSpan } from "@sentry/core";
 import logLevel, { type LogLevelDesc } from "loglevel";
 
 const log = logLevel.getLogger("http-helpers");
@@ -15,8 +14,9 @@ export interface CustomOptions {
 
 export interface Data {}
 
+// Structural so both @sentry/core v10 and v11 instances are assignable (their `typeof startSpan` types are not).
 export interface Sentry {
-  startSpan: typeof startSpan;
+  startSpan<T>(options: { name: string; op?: string }, callback: () => T): T;
 }
 
 let apiKey = "torus-default";
